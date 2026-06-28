@@ -47,7 +47,11 @@ echo "Configuring XRDP to use XFCE..."
 echo "startxfce4" | sudo tee /etc/skel/.xsession
 sudo systemctl restart xrdp
 
-echo "Allowing RDP port through firewall..."
+echo "Installing and allowing SSH and RDP ports through firewall..."
+# Install UFW so the following commands actually work
+sudo apt install ufw -y
+
+sudo ufw allow 22/tcp
 sudo ufw allow 3389/tcp
 sudo ufw enable -y
 
