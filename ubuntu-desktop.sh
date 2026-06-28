@@ -8,7 +8,7 @@ STATUS=(
     ["XRDP Remote Desktop"]="Pending"
     ["UFW Firewall Setup"]="Pending"
     ["User Creation"]="Pending"
-    ["Google Chrome"]="Pending"
+    ["Chromium Browser"]="Pending"
     ["Utilities (Git, Htop, GDebi)"]="Pending"
 )
 
@@ -68,7 +68,6 @@ echo "Removing Oracle default overriding REJECT rule..."
 sudo iptables -D INPUT -j REJECT --reject-with icmp-host-prohibited 2>/dev/null || true
 
 echo "Force installing and configuring UFW firewall (IPv4 Only)..."
-# Install UFW, turn off native IPv6 processing, open ports, and enable
 if sudo apt install ufw -y && \
    sudo sed -i 's/IPV6=yes/IPV6=no/' /etc/default/ufw && \
    sudo ufw allow 22/tcp && \
@@ -104,13 +103,12 @@ else
     echo "Failed to create user. Skipping password configuration."
 fi
 
-echo "Installing Google Chrome..."
-if wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -O /tmp/chrome.deb && sudo apt install /tmp/chrome.deb -y; then
-    STATUS["Google Chrome"]="SUCCESS"
+echo "Installing Chromium Browser (ARM64 Compatible)..."
+if sudo apt install chromium-browser -y; then
+    STATUS["Chromium Browser"]="SUCCESS"
 else
-    STATUS["Google Chrome"]="FAILED"
+    STATUS["Chromium Browser"]="FAILED"
 fi
-rm -f /tmp/chrome.deb
 
 echo "Installing Git, Htop, and GDebi..."
 if sudo apt install git htop gdebi -y; then
@@ -127,7 +125,7 @@ sudo systemctl restart xrdp
 echo "========================================================"
 echo "                INSTALLATION SUMMARY                    "
 echo "========================================================"
-for step in "System Update" "XFCE Desktop" "XRDP Remote Desktop" "UFW Firewall Setup" "User Creation" "Google Chrome" "Utilities (Git, Htop, GDebi)"; do
+for step in "System Update" "XFCE Desktop" "XRDP Remote Desktop" "UFW Firewall Setup" "User Creation" "Chromium Browser" "Utilities (Git, Htop, GDebi)"; do
     if [[ "${STATUS[$step]}" == "SUCCESS" ]]; then
         echo -e "[✓] $step: Installed Successfully"
     else
