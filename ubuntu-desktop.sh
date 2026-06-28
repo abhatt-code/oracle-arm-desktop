@@ -64,19 +64,17 @@ echo "xfce4-session" | sudo tee /etc/skel/.xsession
 echo "STARTUP=xfce4-session" | sudo tee /etc/skel/.xsessionrc
 sudo systemctl restart xrdp
 
+echo "Removing Oracle default overriding REJECT rule..."
+# This must happen BEFORE enabling UFW so the global iptables blockage is cleared
+sudo iptables -D INPUT -j REJECT --reject-with icmp-host-prohibited 2>/dev/null || true
+
 echo "Force installing and configuring UFW firewall..."
+# We install ufw and configure it. UFW handles its own persistence automatically.
 if sudo apt install ufw -y && sudo ufw allow 22/tcp && sudo ufw allow 3389/tcp && sudo ufw --force enable; then
     STATUS["UFW Firewall Setup"]="SUCCESS"
 else
     STATUS["UFW Firewall Setup"]="FAILED"
 fi
-
-echo "Removing Oracle default overriding REJECT rule..."
-sudo iptables -D INPUT -j REJECT --reject-with icmp-host-prohibited 2>/dev/null || true
-
-echo "Saving firewall layout permanently..."
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iptables-persistent netfilter-persistent
-sudo netfilter-persistent save
 
 echo "Creating a new user for RDP login..."
 read -p "Enter a new username for RDP: " new_user
