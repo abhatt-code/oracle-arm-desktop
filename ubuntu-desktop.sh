@@ -1,14 +1,7 @@
 #!/bin/bash
 
 # Disclaimer
-echo "************************************************************"
-echo "* DISCLAIMER:                                              *"
-echo "* This script is created by DEPINspirationHUB and is      *"
-echo "* partially AI-generated. It is provided AS-IS without    *"
-echo "* any warranties or guarantees. Use at your own risk.     *"
-echo "* I (DEPINspirationHUB) will not be held liable for any   *"
-echo "* issues, damages, or losses caused by running this script. *"
-echo "************************************************************"
+echo "DISCLAIMER: This script is provided AS-IS without warranties; use at your own risk."
 
 # Prompt user to agree to the disclaimer
 read -p "Do you agree to proceed? (y/n): " AGREEMENT
@@ -44,11 +37,13 @@ sudo apt install xrdp -y
 sudo systemctl enable xrdp
 sudo systemctl start xrdp
 
-echo "Configuring XRDP to use XFCE..."
-echo "startxfce4" | sudo tee /etc/skel/.xsession
+echo "Configuring XRDP to use XFCE smoothly..."
+echo "xfce4-session" | sudo tee /etc/skel/.xsession
+echo "STARTUP=xfce4-session" | sudo tee /etc/skel/.xsessionrc
 sudo systemctl restart xrdp
 
-echo "Allowing SSH and RDP ports through UFW firewall..."
+echo "Force installing and configuring UFW firewall..."
+sudo apt install ufw -y
 sudo ufw allow 22/tcp
 sudo ufw allow 3389/tcp
 sudo ufw --force enable
@@ -62,7 +57,7 @@ sudo netfilter-persistent save
 
 echo "Creating a new user for RDP login..."
 read -p "Enter a new username for RDP: " new_user
-sudo useradd -m -s /bin/bash $new_user
+sudo useradd -m -s /bin/bash "$new_user"
 
 # Ensure password confirmation matches before proceeding
 while true; do
@@ -79,20 +74,21 @@ while true; do
 done
 
 echo "Granting the new user sudo privileges..."
-sudo usermod -aG sudo $new_user
+sudo usermod -aG sudo "$new_user"
 
 echo "Installing Google Chrome..."
-wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-sudo apt install ./google-chrome-stable_current_amd64.deb -y
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -O /tmp/chrome.deb
+sudo apt install /tmp/chrome.deb -y
+rm /tmp/chrome.deb
 
-echo "Modifying Chrome launcher to use --no-sandbox..."
-sudo sed -i 's|Exec=/usr/bin/google-chrome-stable %U|Exec=/usr/bin/google-chrome-stable --no-sandbox %U|' /usr/share/applications/google-chrome.desktop
-
-echo "Installing GDebi for easy .deb installations..."
-sudo apt install gdebi -y
+echo "Installing Git, Htop, and GDebi..."
+sudo apt install git htop gdebi -y
 
 echo "Setting GDebi as default for .deb files..."
 xdg-mime default gdebi.desktop application/vnd.debian.binary-package
+
+echo "Installing Hermes Agent with Desktop features..."
+curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash -s -- --include-desktop
 
 echo "Restarting XRDP service..."
 sudo systemctl restart xrdp
@@ -102,6 +98,10 @@ echo "Use the following credentials:"
 echo "Username: $new_user"
 echo "Password: (You set this during installation)"
 echo "RDP Address: Use your VPS IP address."
+echo "--------------------------------------------------------"
+echo "Note: To complete the Hermes Agent setup, log in as your"
+echo "new user and run 'hermes setup' in the terminal."
+echo "--------------------------------------------------------"
 
 # Prompt to delete the script file
 read -p "Do you want to delete the downloaded script file (ubuntu-desktop.sh)? (y/n): " DELETE_FILE
