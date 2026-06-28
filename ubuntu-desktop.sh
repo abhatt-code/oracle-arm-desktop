@@ -3,10 +3,11 @@
 # Disclaimer
 echo "************************************************************"
 echo "* DISCLAIMER:                                              *"
-echo "* This script is provided AS-IS without any warranties or  *"
-echo "* guarantees. Use at your own risk. The author will not be *"
-echo "* held liable for any issues, damages, or losses caused by *"
-echo "* running this script.                                     *"
+echo "* This script is created by DEPINspirationHUB and is      *"
+echo "* partially AI-generated. It is provided AS-IS without    *"
+echo "* any warranties or guarantees. Use at your own risk.     *"
+echo "* I (DEPINspirationHUB) will not be held liable for any   *"
+echo "* issues, damages, or losses caused by running this script. *"
 echo "************************************************************"
 
 # Prompt user to agree to the disclaimer
@@ -47,13 +48,17 @@ echo "Configuring XRDP to use XFCE..."
 echo "startxfce4" | sudo tee /etc/skel/.xsession
 sudo systemctl restart xrdp
 
-echo "Installing and allowing SSH and RDP ports through firewall..."
-# Install UFW so the following commands actually work
-sudo apt install ufw -y
-
+echo "Allowing SSH and RDP ports through UFW firewall..."
 sudo ufw allow 22/tcp
 sudo ufw allow 3389/tcp
-sudo ufw enable -y
+sudo ufw --force enable
+
+echo "Removing Oracle default overriding REJECT rule..."
+sudo iptables -D INPUT -j REJECT --reject-with icmp-host-prohibited 2>/dev/null || true
+
+echo "Saving firewall layout permanently..."
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iptables-persistent netfilter-persistent
+sudo netfilter-persistent save
 
 echo "Creating a new user for RDP login..."
 read -p "Enter a new username for RDP: " new_user
@@ -76,11 +81,12 @@ done
 echo "Granting the new user sudo privileges..."
 sudo usermod -aG sudo $new_user
 
-echo "Installing Chromium Browser (Native ARM64 alternative)..."
-sudo apt update && sudo apt install chromium-browser -y
+echo "Installing Google Chrome..."
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+sudo apt install ./google-chrome-stable_current_amd64.deb -y
 
-echo "Modifying Chromium launcher to use --no-sandbox..."
-sudo sed -i 's|Exec=chromium-browser %U|Exec=chromium-browser --no-sandbox %U|' /usr/share/applications/chromium-browser.desktop
+echo "Modifying Chrome launcher to use --no-sandbox..."
+sudo sed -i 's|Exec=/usr/bin/google-chrome-stable %U|Exec=/usr/bin/google-chrome-stable --no-sandbox %U|' /usr/share/applications/google-chrome.desktop
 
 echo "Installing GDebi for easy .deb installations..."
 sudo apt install gdebi -y
