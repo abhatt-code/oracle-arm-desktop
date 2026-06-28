@@ -65,12 +65,15 @@ echo "STARTUP=xfce4-session" | sudo tee /etc/skel/.xsessionrc
 sudo systemctl restart xrdp
 
 echo "Removing Oracle default overriding REJECT rule..."
-# This must happen BEFORE enabling UFW so the global iptables blockage is cleared
 sudo iptables -D INPUT -j REJECT --reject-with icmp-host-prohibited 2>/dev/null || true
 
-echo "Force installing and configuring UFW firewall..."
-# We install ufw and configure it. UFW handles its own persistence automatically.
-if sudo apt install ufw -y && sudo ufw allow 22/tcp && sudo ufw allow 3389/tcp && sudo ufw --force enable; then
+echo "Force installing and configuring UFW firewall (IPv4 Only)..."
+# Install UFW, turn off native IPv6 processing, open ports, and enable
+if sudo apt install ufw -y && \
+   sudo sed -i 's/IPV6=yes/IPV6=no/' /etc/default/ufw && \
+   sudo ufw allow 22/tcp && \
+   sudo ufw allow 3389/tcp && \
+   sudo ufw --force enable; then
     STATUS["UFW Firewall Setup"]="SUCCESS"
 else
     STATUS["UFW Firewall Setup"]="FAILED"
